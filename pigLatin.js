@@ -47,7 +47,7 @@ const translatedWords = [];
 for (let i = 0; i < args.length; i++) {
         const word = args[i];
 
-        const translated = translatedWord(word);
+        const translated = translateWord(word);
         translatedWords.push(translated);
     }  
 
