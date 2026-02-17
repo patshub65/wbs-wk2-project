@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rock Paper Scissors — Logic Flowchart</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@700;800&display=swap');
+
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --border: #2a2a32;
+    --accent-blue: #4f9eff;
+    --accent-green: #3dd68c;
+    --accent-red: #ff6b6b;
+    --accent-yellow: #ffd166;
+    --accent-purple: #c084fc;
+    --text: #e8e8f0;
+    --text-dim: #6b6b80;
+    --code-bg: #1e1e26;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .header p {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ── EXPORT BUTTON ── */
+  .export-bar {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+  .btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+  .btn.primary {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: #000;
+    font-weight: 600;
+  }
+  .btn.primary:hover { opacity: 0.85; }
+
+  /* ── FLOWCHART CANVAS ── */
+  #chart {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* ── NODE STYLES ── */
+  .node {
+    width: 100%;
+    max-width: 620px;
+    border-radius: 10px;
+    padding: 16px 20px;
+    position: relative;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .node-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .node-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .node code {
+    display: block;
+    background: var(--code-bg);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    border-left: 3px solid currentColor;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* Node color variants */
+  .node-start   { border-color: var(--accent-blue);   --c: var(--accent-blue); }
+  .node-process { border-color: var(--border);         --c: var(--text-dim); }
+  .node-check   { border-color: var(--accent-yellow);  --c: var(--accent-yellow); background: #1c1a10; }
+  .node-error   { border-color: var(--accent-red);     --c: var(--accent-red);   background: #1c1010; }
+  .node-win     { border-color: var(--accent-green);   --c: var(--accent-green); background: #0e1c14; }
+  .node-lose    { border-color: var(--accent-red);     --c: var(--accent-red);   background: #1c0e0e; }
+  .node-draw    { border-color: var(--accent-yellow);  --c: var(--accent-yellow); background: #1c1a0e; }
+  .node-end     { border-color: var(--accent-purple);  --c: var(--accent-purple); }
+  .node-random  { border-color: var(--accent-blue);    --c: var(--accent-blue);  background: #0e1220; }
+
+  .node-label { color: var(--c); }
+  .node code  { border-left-color: var(--c); }
+
+  /* ── ARROWS ── */
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin: 0;
+    z-index: 10;
+  }
+  .arrow-line {
+    width: 2px;
+    height: 32px;
+    background: var(--border);
+  }
+  .arrow-head {
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 10px solid var(--border);
+  }
+  .arrow-label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    margin-top: -4px;
+    margin-bottom: 4px;
+    background: var(--bg);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  /* ── BRANCH (two paths side by side) ── */
+  .branch {
+    width: 100%;
+    max-width: 860px;
+    display: grid;
+    grid-template-columns: 1fr 40px 1fr;
+    gap: 0;
+    align-items: start;
+    position: relative;
+  }
+  .branch-left  { display: flex; flex-direction: column; align-items: center; }
+  .branch-right { display: flex; flex-direction: column; align-items: center; }
+
+  .branch-divider {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 20px;
+  }
+  .branch-line-v {
+    width: 2px;
+    height: 100%;
+    background: var(--border);
+  }
+
+  /* Horizontal line linking branch paths */
+  .branch-top {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 860px;
+    position: relative;
+    height: 40px;
+    margin-bottom: 0;
+  }
+  .h-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+  }
+  .h-line-label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    padding: 0 10px;
+    background: var(--bg);
+    white-space: nowrap;
+  }
+  .h-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ── OUTCOMES TABLE ── */
+  .outcomes-table {
+    width: 100%;
+    max-width: 620px;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+    margin-top: 10px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .outcomes-table th {
+    background: var(--code-bg);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+  .outcomes-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .outcomes-table tr:last-child td { border-bottom: none; }
+  .outcomes-table tr:hover td { background: var(--code-bg); }
+  .win-row  td:last-child { color: var(--accent-green); }
+  .lose-row td:last-child { color: var(--accent-red); }
+  .draw-row td:last-child { color: var(--accent-yellow); }
+
+  /* ── MERGE (two paths coming back together) ── */
+  .merge-top {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 860px;
+    height: 40px;
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    width: 100%;
+    max-width: 860px;
+    text-align: center;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 32px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .section-label::before,
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── PRINT STYLES ── */
+  @media print {
+    body { background: white; color: black; padding: 20px; }
+    .export-bar { display: none; }
+    .node { border-color: #ccc; background: #f9f9f9; }
+    .node code { background: #f0f0f0; color: #333; }
+    .header h1 { -webkit-text-fill-color: #111; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Rock Paper Scissors</h1>
+  <p>Command-line game — Logic Flowchart</p>
+</div>
+
+<div class="export-bar">
+  <button class="btn primary" onclick="window.print()">🖨 Print / Save as PDF</button>
+  <button class="btn" onclick="copyCode()">📋 Copy Page URL</button>
+</div>
+
+<div id="chart">
+
+  <!-- ── START ── -->
+  <div class="node node-start">
+    <div class="node-label">Start</div>
+    <div class="node-title">User runs the script</div>
+    <code style="color: var(--accent-blue)">$ node rockPaperScissors.js rock</code>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- ── GET INPUT ── -->
+  <div class="node node-process">
+    <div class="node-label">Step 1 — Get Input</div>
+    <div class="node-title">Slice process.argv</div>
+    <code style="color: var(--text-dim)">const args = process.argv.slice(2);
+// process.argv = ['/node', '/script.js', 'rock']
+// args         = ['rock']</code>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- ── VALIDATE 1 ── -->
+  <div class="node node-check">
+    <div class="node-label">Check — Validation 1</div>
+    <div class="node-title">Did the user type anything?</div>
+    <code style="color: var(--accent-yellow)">if (args.length === 0) {
+  // nothing was typed
+}</code>
+  </div>
+
+  <!-- Branch: YES error / NO continue -->
+  <div class="branch-top">
+    <div class="h-line"></div>
+    <div class="h-line-label" style="color: var(--accent-red)">YES → error</div>
+    <div class="h-dot"></div>
+    <div class="h-line-label" style="color: var(--accent-green)">NO → continue</div>
+    <div class="h-line"></div>
+  </div>
+
+  <div class="branch">
+    <div class="branch-left">
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-error" style="max-width:100%">
+        <div class="node-label">Error → Exit</div>
+        <div class="node-title">No input provided</div>
+        <code style="color: var(--accent-red)">console.error(
+  'Please provide your move'
+);
+console.error(
+  'Usage: node rps.js rock'
+);
+return;</code>
+      </div>
+    </div>
+    <div class="branch-divider"></div>
+    <div class="branch-right">
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-process" style="max-width:100%">
+        <div class="node-label">Step 2 — Normalise</div>
+        <div class="node-title">Get player's move</div>
+        <code style="color: var(--text-dim)">const playerMove =
+  args[0].toLowerCase();
+// 'ROCK' → 'rock'</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- arrow continues from right branch -->
+  <div class="arrow" style="align-self:flex-end; margin-right: calc(50% - 310px)">
+    <div class="arrow-line"></div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- ── VALIDATE 2 ── -->
+  <div class="node node-check">
+    <div class="node-label">Check — Validation 2</div>
+    <div class="node-title">Is it a valid move?</div>
+    <code style="color: var(--accent-yellow)">const validMoves =
+  ['rock', 'paper', 'scissors'];
+
+if (!validMoves.includes(playerMove)) {
+  // invalid move
+}</code>
+  </div>
+
+  <!-- Branch: invalid / valid -->
+  <div class="branch-top">
+    <div class="h-line"></div>
+    <div class="h-line-label" style="color: var(--accent-red)">INVALID → error</div>
+    <div class="h-dot"></div>
+    <div class="h-line-label" style="color: var(--accent-green)">VALID → continue</div>
+    <div class="h-line"></div>
+  </div>
+
+  <div class="branch">
+    <div class="branch-left">
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-error" style="max-width:100%">
+        <div class="node-label">Error → Exit</div>
+        <div class="node-title">Invalid move</div>
+        <code style="color: var(--accent-red)">console.error(
+  `"${playerMove}" is not valid`
+);
+console.error(
+  'Use: rock, paper, scissors'
+);
+return;</code>
+      </div>
+    </div>
+    <div class="branch-divider"></div>
+    <div class="branch-right">
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-random" style="max-width:100%">
+        <div class="node-label">Step 3 — Random</div>
+        <div class="node-title">Generate computer move</div>
+        <code style="color: var(--accent-blue)">const randomIndex = Math.floor(
+  Math.random() * validMoves.length
+);
+// Math.random()  → 0.0–0.999
+// × 3            → 0.0–2.999
+// Math.floor()   → 0, 1, or 2
+
+const computerMove =
+  validMoves[randomIndex];
+// e.g. 'scissors'</code>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow" style="align-self:flex-end; margin-right: calc(50% - 310px)">
+    <div class="arrow-line"></div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- ── COMPARE ── -->
+  <div class="node node-check">
+    <div class="node-label">Step 4 — Compare</div>
+    <div class="node-title">Compare player vs computer</div>
+    <code style="color: var(--accent-yellow)">// playerMove   = 'rock'
+// computerMove  = 'scissors'
+
+if (playerMove === computerMove) → DRAW
+else if (winning combination)   → WIN
+else                            → LOSE</code>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- ── THREE OUTCOME BRANCHES ── -->
+  <div class="section-label">Three possible outcomes</div>
+
+  <div style="width:100%; max-width:860px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px">
+
+    <!-- DRAW -->
+    <div class="node node-draw">
+      <div class="node-label">Outcome A</div>
+      <div class="node-title">🤝 Draw</div>
+      <code style="color: var(--accent-yellow)">if (playerMove ===
+    computerMove) {
+  result =
+    "It's a draw!";
+}
+
+// rock vs rock
+// paper vs paper
+// scissors vs
+//   scissors</code>
+    </div>
+
+    <!-- WIN -->
+    <div class="node node-win">
+      <div class="node-label">Outcome B</div>
+      <div class="node-title">🎉 You Win</div>
+      <code style="color: var(--accent-green)">if (
+ (player==='rock' &&
+  computer==='scissors')
+ ||
+ (player==='scissors' &&
+  computer==='paper')
+ ||
+ (player==='paper' &&
+  computer==='rock')
+) {
+  result = 'You win!';
+}</code>
+    </div>
+
+    <!-- LOSE -->
+    <div class="node node-lose">
+      <div class="node-label">Outcome C</div>
+      <div class="node-title">😢 You Lose</div>
+      <code style="color: var(--accent-red)">} else {
+  result =
+    'You lose!';
+}
+
+// All other cases
+// mean the computer
+// won</code>
+    </div>
+
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- ── OUTCOMES TABLE ── -->
+  <div class="node node-process">
+    <div class="node-label">Reference — All Outcomes</div>
+    <div class="node-title">Complete outcomes table</div>
+    <table class="outcomes-table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Computer</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="win-row"><td>🪨 rock</td><td>✂️ scissors</td><td>Win 🎉</td></tr>
+        <tr class="lose-row"><td>🪨 rock</td><td>📄 paper</td><td>Lose 😢</td></tr>
+        <tr class="draw-row"><td>🪨 rock</td><td>🪨 rock</td><td>Draw 🤝</td></tr>
+        <tr class="win-row"><td>📄 paper</td><td>🪨 rock</td><td>Win 🎉</td></tr>
+        <tr class="lose-row"><td>📄 paper</td><td>✂️ scissors</td><td>Lose 😢</td></tr>
+        <tr class="draw-row"><td>📄 paper</td><td>📄 paper</td><td>Draw 🤝</td></tr>
+        <tr class="win-row"><td>✂️ scissors</td><td>📄 paper</td><td>Win 🎉</td></tr>
+        <tr class="lose-row"><td>✂️ scissors</td><td>🪨 rock</td><td>Lose 😢</td></tr>
+        <tr class="draw-row"><td>✂️ scissors</td><td>✂️ scissors</td><td>Draw 🤝</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- ── DISPLAY RESULT ── -->
+  <div class="node node-process">
+    <div class="node-label">Step 5 — Output</div>
+    <div class="node-title">Display result to console</div>
+    <code style="color: var(--text-dim)">console.log('--- RESULT ---');
+console.log(`You chose: ${playerMove}`);
+console.log(`Computer chose: ${computerMove}`);
+console.log(result);
+console.log('---------------');
+
+// --- RESULT ---
+// You chose: rock
+// Computer chose: scissors
+// You win! 🎉
+// ---------------</code>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- ── END ── -->
+  <div class="node node-end" style="text-align:center; max-width: 200px">
+    <div class="node-label" style="text-align:center">End</div>
+    <div class="node-title" style="text-align:center; margin-bottom:0">Program exits</div>
+  </div>
+
+</div><!-- end #chart -->
+
+<script>
+function copyCode() {
+  navigator.clipboard.writeText(window.location.href)
+    .then(() => alert('URL copied to clipboard!'))
+    .catch(() => alert('Open this file in a browser to copy the URL'));
+}
+</script>
+
+</body>
+</html>

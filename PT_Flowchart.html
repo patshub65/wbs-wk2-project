@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pig Latin Translator — Logic Flowchart</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@700;800&display=swap');
+
+  :root {
+    --bg: #0a0f0d;
+    --surface: #111a14;
+    --border: #1f2e24;
+    --accent-green:  #3dd68c;
+    --accent-teal:   #2dd4bf;
+    --accent-yellow: #ffd166;
+    --accent-red:    #ff6b6b;
+    --accent-purple: #c084fc;
+    --accent-blue:   #4f9eff;
+    --text: #e0ede5;
+    --text-dim: #5a7a65;
+    --code-bg: #0d1a10;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .header p {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ── EXPORT BUTTON ── */
+  .export-bar {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+  .btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .btn:hover { border-color: var(--accent-green); color: var(--accent-green); }
+  .btn.primary {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+    color: #000;
+    font-weight: 600;
+  }
+  .btn.primary:hover { opacity: 0.85; }
+
+  /* ── FLOWCHART CANVAS ── */
+  #chart {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── NODE STYLES ── */
+  .node {
+    width: 100%;
+    max-width: 640px;
+    border-radius: 10px;
+    padding: 16px 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .node-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .node-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .node code {
+    display: block;
+    background: var(--code-bg);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 0.78rem;
+    line-height: 1.75;
+    border-left: 3px solid currentColor;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* colour variants */
+  .node-start   { border-color: var(--accent-green);  --c: var(--accent-green); }
+  .node-process { border-color: var(--border);         --c: var(--text-dim); }
+  .node-check   { border-color: var(--accent-yellow);  --c: var(--accent-yellow); background:#1a1800; }
+  .node-error   { border-color: var(--accent-red);     --c: var(--accent-red);   background:#1a0a0a; }
+  .node-vowel   { border-color: var(--accent-teal);    --c: var(--accent-teal);  background:#081614; }
+  .node-cons    { border-color: var(--accent-purple);  --c: var(--accent-purple);background:#130d1a; }
+  .node-loop    { border-color: var(--accent-blue);    --c: var(--accent-blue);  background:#080f1a; }
+  .node-output  { border-color: var(--accent-green);   --c: var(--accent-green); background:#081410; }
+  .node-end     { border-color: var(--accent-green);   --c: var(--accent-green); }
+
+  .node-label { color: var(--c); }
+  .node code  { border-left-color: var(--c); }
+
+  /* ── ARROWS ── */
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .arrow-line {
+    width: 2px;
+    height: 32px;
+    background: var(--border);
+  }
+  .arrow-head {
+    width: 0; height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 10px solid var(--border);
+  }
+
+  /* ── BRANCH ── */
+  .branch-top {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 900px;
+    height: 40px;
+  }
+  .h-line { flex: 1; height: 2px; background: var(--border); }
+  .h-dot  { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink:0; }
+  .h-label {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    padding: 0 10px;
+    background: var(--bg);
+    white-space: nowrap;
+  }
+
+  .branch {
+    width: 100%;
+    max-width: 900px;
+    display: grid;
+    grid-template-columns: 1fr 32px 1fr;
+    gap: 0;
+    align-items: start;
+  }
+  .branch-left, .branch-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .branch-divider { display: flex; justify-content: center; padding-top: 20px; }
+
+  /* three-column outcomes */
+  .three-col {
+    width: 100%;
+    max-width: 900px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* ── WHILE LOOP VISUALIZATION ── */
+  .while-box {
+    border: 1px dashed var(--accent-blue);
+    border-radius: 8px;
+    padding: 14px;
+    margin-top: 10px;
+    background: rgba(79,158,255,0.04);
+  }
+  .while-box-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-blue);
+    margin-bottom: 10px;
+  }
+  .while-iteration {
+    background: var(--code-bg);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 0.74rem;
+    line-height: 1.7;
+    margin-bottom: 8px;
+    border-left: 2px solid var(--accent-blue);
+    white-space: pre;
+  }
+  .while-iteration:last-child { margin-bottom: 0; }
+  .iter-stop { border-left-color: var(--accent-red); }
+
+  /* ── RULES TABLE ── */
+  .rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+    margin-top: 10px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .rules-table th {
+    background: var(--code-bg);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+  .rules-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .rules-table tr:last-child td { border-bottom: none; }
+  .rules-table tr:hover td { background: var(--code-bg); }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    width: 100%;
+    max-width: 900px;
+    text-align: center;
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 28px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .section-label::before,
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  @media print {
+    body { background: white; color: black; padding: 20px; }
+    .export-bar { display: none; }
+    .node { border-color: #ccc; background: #f9f9f9; }
+    .node code, .while-iteration { background: #f0f0f0; color: #333; }
+    .header h1 { -webkit-text-fill-color: #111; }
+    .while-box { border-color: #aaa; background: #f5f5f5; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Pig Latin Translator</h1>
+  <p>Command-line program — Logic Flowchart</p>
+</div>
+
+<div class="export-bar">
+  <button class="btn primary" onclick="window.print()">🖨 Print / Save as PDF</button>
+</div>
+
+<div id="chart">
+
+  <!-- START -->
+  <div class="node node-start">
+    <div class="node-label">Start</div>
+    <div class="node-title">User runs the script</div>
+    <code style="color:var(--accent-green)">$ node pigLatin.js hello world string</code>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- GET INPUT -->
+  <div class="node node-process">
+    <div class="node-label">Step 1 — Get Input</div>
+    <div class="node-title">Slice process.argv</div>
+    <code style="color:var(--text-dim)">const args = process.argv.slice(2);
+// process.argv = ['/node', '/script.js', 'hello', 'world']
+// args         = ['hello', 'world']</code>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- VALIDATE -->
+  <div class="node node-check">
+    <div class="node-label">Check — Validation</div>
+    <div class="node-title">Did the user provide any words?</div>
+    <code style="color:var(--accent-yellow)">if (args.length === 0) {
+  // nothing was typed → show error
+}</code>
+  </div>
+
+  <div class="branch-top">
+    <div class="h-line"></div>
+    <div class="h-label" style="color:var(--accent-red)">YES → error</div>
+    <div class="h-dot"></div>
+    <div class="h-label" style="color:var(--accent-green)">NO → continue</div>
+    <div class="h-line"></div>
+  </div>
+
+  <div class="branch">
+    <div class="branch-left">
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-error" style="max-width:100%">
+        <div class="node-label">Error → Exit</div>
+        <div class="node-title">No input provided</div>
+        <code style="color:var(--accent-red)">console.error(
+  'Please provide words'
+);
+console.error(
+  'Usage: node pigLatin.js hello'
+);
+return;</code>
+      </div>
+    </div>
+    <div class="branch-divider"></div>
+    <div class="branch-right">
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-process" style="max-width:100%">
+        <div class="node-label">Step 2 — Setup</div>
+        <div class="node-title">Prepare results array</div>
+        <code style="color:var(--text-dim)">const translatedWords = [];
+
+// Empty array to collect
+// each translated word</code>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow" style="align-self:flex-end; margin-right:calc(50% - 320px)">
+    <div class="arrow-line"></div><div class="arrow-head"></div>
+  </div>
+
+  <!-- FOR LOOP -->
+  <div class="node node-loop">
+    <div class="node-label">Step 3 — Loop</div>
+    <div class="node-title">Iterate over every word</div>
+    <code style="color:var(--accent-blue)">for (let i = 0; i &lt; args.length; i++) {
+  const word = args[i];
+  // e.g. 'hello', then 'world'
+
+  const translated = translateWord(word);
+  translatedWords.push(translated);
+}</code>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- LOWERCASE -->
+  <div class="node node-process">
+    <div class="node-label">Step 4 — Normalise</div>
+    <div class="node-title">Convert word to lowercase</div>
+    <code style="color:var(--text-dim)">// Inside translateWord(word):
+word = word.toLowerCase();
+// 'HELLO' → 'hello'
+// Ensures consistent comparisons</code>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- CHECK VOWEL -->
+  <div class="node node-check">
+    <div class="node-label">Check — Rule Selection</div>
+    <div class="node-title">Does the word start with a vowel?</div>
+    <code style="color:var(--accent-yellow)">function isVowel(letter) {
+  const vowels = ['a','e','i','o','u'];
+  return vowels.includes(
+    letter.toLowerCase()
+  );
+}
+
+if (isVowel(word[0])) {
+  // vowel rule
+} else {
+  // consonant rule
+}</code>
+  </div>
+
+  <!-- TWO RULE BRANCHES -->
+  <div class="branch-top">
+    <div class="h-line"></div>
+    <div class="h-label" style="color:var(--accent-teal)">YES → vowel rule</div>
+    <div class="h-dot"></div>
+    <div class="h-label" style="color:var(--accent-purple)">NO → consonant rule</div>
+    <div class="h-line"></div>
+  </div>
+
+  <div class="branch">
+
+    <!-- VOWEL RULE -->
+    <div class="branch-left">
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-vowel" style="max-width:100%">
+        <div class="node-label">Rule 1 — Vowel Start</div>
+        <div class="node-title">Add "way" to the end</div>
+        <code style="color:var(--accent-teal)">return word + 'way';
+
+// Examples:
+// 'apple'  → 'appleway'
+// 'eat'    → 'eatway'
+// 'orange' → 'orangeway'
+// 'igloo'  → 'iglooway'</code>
+      </div>
+    </div>
+
+    <div class="branch-divider"></div>
+
+    <!-- CONSONANT RULE -->
+    <div class="branch-right">
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-cons" style="max-width:100%">
+        <div class="node-label">Rule 2 — Consonant Start</div>
+        <div class="node-title">Find consonant cluster</div>
+        <code style="color:var(--accent-purple)">let consonantCluster = '';
+let index = 0;
+
+while (index &lt; word.length
+  && !isVowel(word[index])) {
+  consonantCluster += word[index];
+  index++;
+}</code>
+        <!-- WHILE LOOP DETAIL -->
+        <div class="while-box">
+          <div class="while-box-label">While loop — tracing "string"</div>
+          <div class="while-iteration">i=0: 's' → not vowel → cluster='s'</div>
+          <div class="while-iteration">i=1: 't' → not vowel → cluster='st'</div>
+          <div class="while-iteration">i=2: 'r' → not vowel → cluster='str'</div>
+          <div class="while-iteration iter-stop">i=3: 'i' → IS vowel  → STOP ✋</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CONSONANT CONTINUES -->
+  <div class="arrow" style="align-self:flex-end; margin-right:calc(50% - 320px)">
+    <div class="arrow-line"></div><div class="arrow-head"></div>
+  </div>
+
+  <div class="node node-cons">
+    <div class="node-label">Rule 2 continued — Build Word</div>
+    <div class="node-title">Move cluster to end + "ay"</div>
+    <code style="color:var(--accent-purple)">const restOfWord = word.slice(index);
+// 'string'.slice(3) → 'ing'
+
+return restOfWord + consonantCluster + 'ay';
+// 'ing' + 'str' + 'ay' → 'ingstray'</code>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- RULES TABLE -->
+  <div class="section-label">All rules at a glance</div>
+
+  <div class="node node-process">
+    <div class="node-label">Reference — Translation Rules</div>
+    <div class="node-title">Complete rules table</div>
+    <table class="rules-table">
+      <thead>
+        <tr>
+          <th>Original</th>
+          <th>First Letter(s)</th>
+          <th>Rule</th>
+          <th>Pig Latin</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>apple</td>
+          <td style="color:var(--accent-teal)">a (vowel)</td>
+          <td>+ "way"</td>
+          <td style="color:var(--accent-teal)">appleway</td>
+        </tr>
+        <tr>
+          <td>eat</td>
+          <td style="color:var(--accent-teal)">e (vowel)</td>
+          <td>+ "way"</td>
+          <td style="color:var(--accent-teal)">eatway</td>
+        </tr>
+        <tr>
+          <td>hello</td>
+          <td style="color:var(--accent-purple)">h (1 consonant)</td>
+          <td>move h + "ay"</td>
+          <td style="color:var(--accent-purple)">ellohay</td>
+        </tr>
+        <tr>
+          <td>pig</td>
+          <td style="color:var(--accent-purple)">p (1 consonant)</td>
+          <td>move p + "ay"</td>
+          <td style="color:var(--accent-purple)">igpay</td>
+        </tr>
+        <tr>
+          <td>string</td>
+          <td style="color:var(--accent-blue)">str (cluster)</td>
+          <td>move str + "ay"</td>
+          <td style="color:var(--accent-blue)">ingstray</td>
+        </tr>
+        <tr>
+          <td>glove</td>
+          <td style="color:var(--accent-blue)">gl (cluster)</td>
+          <td>move gl + "ay"</td>
+          <td style="color:var(--accent-blue)">oveglay</td>
+        </tr>
+        <tr>
+          <td>school</td>
+          <td style="color:var(--accent-blue)">sch (cluster)</td>
+          <td>move sch + "ay"</td>
+          <td style="color:var(--accent-blue)">oolschay</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- STORE RESULT -->
+  <div class="node node-loop">
+    <div class="node-label">Step 5 — Store</div>
+    <div class="node-title">Push translated word into array</div>
+    <code style="color:var(--accent-blue)">translatedWords.push(translated);
+
+// After 'hello' → ['ellohay']
+// After 'world' → ['ellohay', 'orldway']
+// After 'string'→ ['ellohay', 'orldway', 'ingstray']
+
+// ↩ Loop back for next word if any remain</code>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- JOIN -->
+  <div class="node node-process">
+    <div class="node-label">Step 6 — Join</div>
+    <div class="node-title">Combine all translated words</div>
+    <code style="color:var(--text-dim)">const result = translatedWords.join(' ');
+
+// ['ellohay', 'orldway', 'ingstray']
+//   joined with spaces →
+// 'ellohay orldway ingstray'</code>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- OUTPUT -->
+  <div class="node node-output">
+    <div class="node-label">Step 7 — Output</div>
+    <div class="node-title">Display result to console</div>
+    <code style="color:var(--accent-green)">console.log('--- PIG LATIN TRANSLATOR ---');
+console.log('Original:', args.join(' '));
+console.log('Pig Latin:', result);
+console.log('----------------------------');
+
+// --- PIG LATIN TRANSLATOR ---
+// Original:  hello world string
+// Pig Latin: ellohay orldway ingstray
+// ----------------------------</code>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- END -->
+  <div class="node node-end" style="text-align:center; max-width:200px">
+    <div class="node-label" style="text-align:center">End</div>
+    <div class="node-title" style="text-align:center; margin-bottom:0">Program exits</div>
+  </div>
+
+</div><!-- end #chart -->
+
+</body>
+</html>

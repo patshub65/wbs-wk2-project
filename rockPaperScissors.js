@@ -1,41 +1,4 @@
 
-/* // Array of valid moves
-
-const moves = ['rock', 'paper', 'scissors'];
-
-// Get a random index (0, 1, 2)
-const randomIndex = Math.floor(Math.random() * validMoves.length);
-
-// Get computer move
-const computerMove = validMoves[randomIndex];
-
-console.log(`Computer chose: ${computerMove}`);
-
-// Determine winner
-
-function determineWinnner(player, computer) {
-    // Handle draw first (simplest case)
-
-    if (player === computer) {
-        return 'draw';
-    }
-    
-// Check all winning conditions for player
-
-if (player === 'rock' && computer === 'scissors') {
-    return 'win';
-}
-if (player === 'scissors' && computer === 'paper') {
-    return 'win';
-}
-if (player === 'paper' && computer === 'rock') {
-    return 'win';
-}
-
-    // If none of the above, player loses
-    return 'lose';
-}
- */
 
 // Get the player's move from command line
 
